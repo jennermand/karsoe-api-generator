@@ -1,0 +1,77 @@
+name: CI Build
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+env:
+  DOTNET_VERSION: '10.0.x'
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Run tests
+      run: dotnet test --configuration Release --no-build --verbosity normal
+      
+    - name: Run tests with coverage (Ubuntu only)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        cd Tests
+        dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura /p:CoverletOutput=TestResults/coverage.cobertura.xml --configuration Release
+        
+    - name: Install ReportGenerator (Ubuntu only)
+      if: matrix.os == 'ubuntu-latest'
+      run: dotnet tool install --global dotnet-reportgenerator-globaltool
+      
+    - name: Generate coverage report (Ubuntu only)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        reportgenerator -reports:Tests/TestResults/coverage.cobertura.xml -targetdir:Tests/TestResults/CoverageReport -reporttypes:Html
+        
+    - name: Upload coverage report (Ubuntu only)
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: Tests/TestResults/CoverageReport/
+        retention-days: 30
+        
+    - name: Check coverage threshold (Ubuntu only)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        cd Tests
+        dotnet test /p:CollectCoverage=true /p:Threshold=85 /p:ThresholdType=line --configuration Release
+        
+    - name: Pack tool
+      if: matrix.os == 'ubuntu-latest'
+      run: dotnet pack --configuration Release --no-build --output ./artifacts
+      
+    - name: Upload package artifact (Ubuntu only)
+      if: matrix.os == 'ubuntu-latest'
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-package-preview
+        path: ./artifacts/*.nupkg
+        retention-days: 7

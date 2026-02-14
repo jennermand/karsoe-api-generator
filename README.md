@@ -24,14 +24,17 @@ A powerful .NET command-line tool that generates strongly-typed C# API clients f
 ### As a Global Tool (Recommended)
 
 ```bash
-# Install from local build
+# Install from NuGet (after publishing)
+dotnet tool install --global Karsoe.ApiGenerator
+
+# Or install from local build
 dotnet pack --configuration Release
 dotnet tool install --global --add-source ./bin/Release Karsoe.ApiGenerator
 
-# Or from NuGet (when published)
-dotnet tool install --global Karsoe.ApiGenerator
-
 # If updating an existing installation:
+dotnet tool update --global Karsoe.ApiGenerator
+
+# Or manually uninstall and reinstall:
 dotnet tool uninstall --global Karsoe.ApiGenerator
 dotnet tool install --global --add-source ./bin/Release Karsoe.ApiGenerator
 ```
@@ -356,6 +359,61 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - **Issues**: [GitHub Issues](https://github.com/karsoe/api-generator/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/karsoe/api-generator/discussions)
 
+## � Publishing to NuGet
+
+This project includes automated GitHub Actions workflows for publishing to NuGet.
+
+### Setup
+
+1. **Get a NuGet API Key**:
+   - Go to https://www.nuget.org/
+   - Sign in or create an account
+   - Go to API Keys → Create
+   - Name: `GitHub Actions - Karsoe.ApiGenerator`
+   - Select scopes: `Push new packages and package versions`
+   - Glob pattern: `Karsoe.*`
+
+2. **Add the API Key to GitHub Secrets**:
+   - Go to your GitHub repository → Settings → Secrets and variables → Actions
+   - Click "New repository secret"
+   - Name: `NUGET_API_KEY`
+   - Value: Paste your NuGet API key
+   - Click "Add secret"
+
+### Publishing a New Version
+
+1. **Update the version** in [karsoe-api-generator.csproj](karsoe-api-generator.csproj):
+   ```xml
+   <Version>1.0.1</Version>
+   ```
+
+2. **Commit and tag the release**:
+   ```bash
+   git add karsoe-api-generator.csproj
+   git commit -m "Bump version to 1.0.1"
+   git tag v1.0.1
+   git push origin main --tags
+   ```
+
+3. The workflow will automatically:
+   - ✅ Run all tests (must pass 85% coverage threshold)
+   - ✅ Build the project in Release mode
+   - ✅ Pack the .NET tool
+   - ✅ Publish to NuGet.org
+   - ✅ Create a GitHub Release with the package
+
+### Workflows
+
+- **CI Build** (`.github/workflows/ci.yml`): Runs on every push/PR to main
+  - Tests on Ubuntu, Windows, and macOS
+  - Validates 85% code coverage threshold
+  - Generates coverage reports
+  
+- **Publish to NuGet** (`.github/workflows/publish-nuget.yml`): Runs on version tags
+  - Runs full test suite
+  - Publishes to NuGet.org
+  - Creates GitHub Release
+
 ## 🗺️ Roadmap
 
 - [ ] Support for OpenAPI 2.0 (Swagger)
@@ -363,7 +421,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 - [ ] Multiple language support (TypeScript, Python, etc.)
 - [ ] GraphQL support
 - [ ] Watch mode for auto-regeneration
-- [ ] NuGet package publication
+- [x] NuGet package publication
+- [x] Automated CI/CD with GitHub Actions
 
 ---
 

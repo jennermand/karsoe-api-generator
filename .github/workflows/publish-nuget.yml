@@ -1,0 +1,112 @@
+name: Publish to NuGet
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0, v1.2.3, etc.
+  workflow_dispatch:  # Allows manual trigger from GitHub UI
+
+env:
+  DOTNET_VERSION: '10.0.x'
+  PROJECT_PATH: 'karsoe-api-generator.csproj'
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Run tests with coverage
+      run: |
+        cd Tests
+        dotnet test /p:CollectCoverage=true /p:CoverletOutputFormat=cobertura --configuration Release
+        
+    - name: Upload coverage report
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: Tests/TestResults/coverage.cobertura.xml
+        retention-days: 30
+
+  publish:
+    name: Build and Publish to NuGet
+    runs-on: ubuntu-latest
+    needs: test  # Only publish if tests pass
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: ${{ env.DOTNET_VERSION }}
+        
+    - name: Extract version from tag
+      id: get_version
+      run: |
+        if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+          VERSION=${GITHUB_REF#refs/tags/v}
+        else
+          VERSION="1.0.0-preview.${GITHUB_RUN_NUMBER}"
+        fi
+        echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+        echo "Publishing version: ${VERSION}"
+        
+    - name: Update project version
+      run: |
+        sed -i "s/<Version>.*<\/Version>/<Version>${{ steps.get_version.outputs.VERSION }}<\/Version>/" ${{ env.PROJECT_PATH }}
+        
+    - name: Restore dependencies
+      run: dotnet restore
+      
+    - name: Build
+      run: dotnet build --configuration Release --no-restore
+      
+    - name: Pack
+      run: dotnet pack --configuration Release --no-build --output ./artifacts
+      
+    - name: Upload package artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: nuget-package
+        path: ./artifacts/*.nupkg
+        retention-days: 90
+        
+    - name: Publish to NuGet
+      run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+      env:
+        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v2
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        files: ./artifacts/*.nupkg
+        generate_release_notes: true
+        body: |
+          ## Installation
+          
+          ```bash
+          dotnet tool install --global Karsoe.ApiGenerator --version ${{ steps.get_version.outputs.VERSION }}
+          ```
+          
+          ## What's Changed
+          
+          See the release notes below for detailed changes.
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
