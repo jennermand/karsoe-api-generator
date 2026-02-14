@@ -5,6 +5,11 @@ on:
     tags:
       - 'v*.*.*'  # Triggers on version tags like v1.0.0, v1.2.3, etc.
   workflow_dispatch:  # Allows manual trigger from GitHub UI
+    inputs:
+      version:
+        description: 'Version to publish (e.g., 1.0.0 or leave empty to use project version)'
+        required: false
+        type: string
 
 env:
   DOTNET_VERSION: '10.0.x'
@@ -59,10 +64,15 @@ jobs:
     - name: Extract version from tag
       id: get_version
       run: |
-        if [[ "${GITHUB_REF}" == refs/tags/* ]]; then
+        if [[ -n "${{ github.event.inputs.version }}" ]]; then
+          VERSION="${{ github.event.inputs.version }}"
+          echo "Using manual version: ${VERSION}"
+        elif [[ "${GITHUB_REF}" == refs/tags/* ]]; then
           VERSION=${GITHUB_REF#refs/tags/v}
+          echo "Using tag version: ${VERSION}"
         else
           VERSION="1.0.0-preview.${GITHUB_RUN_NUMBER}"
+          echo "Using preview version: ${VERSION}"
         fi
         echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
         echo "Publishing version: ${VERSION}"
@@ -91,6 +101,20 @@ jobs:
       run: dotnet nuget push ./artifacts/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
       env:
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        
+    - name: Publish Summary
+      run: |
+        echo "## ✅ Published to NuGet successfully!" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "**Version:** ${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+        echo "**Package:** Karsoe.ApiGenerator" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Installation" >> $GITHUB_STEP_SUMMARY
+        echo '```bash' >> $GITHUB_STEP_SUMMARY
+        echo "dotnet tool install --global Karsoe.ApiGenerator --version ${{ steps.get_version.outputs.VERSION }}" >> $GITHUB_STEP_SUMMARY
+        echo '```' >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "🔗 [View on NuGet.org](https://www.nuget.org/packages/Karsoe.ApiGenerator/${{ steps.get_version.outputs.VERSION }})" >> $GITHUB_STEP_SUMMARY
         
     - name: Create GitHub Release
       uses: softprops/action-gh-release@v2
