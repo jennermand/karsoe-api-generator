@@ -266,8 +266,13 @@ public class ApiClientGenerator
             }
             else
             {
+                sb.AppendLine("        // Handle empty response body (valid for 200 OK)");
+                sb.AppendLine("        if (string.IsNullOrWhiteSpace(responseContent))");
+                sb.AppendLine("        {");
+                sb.AppendLine($"            return default!;");
+                sb.AppendLine("        }");
                 sb.AppendLine($"        return JsonSerializer.Deserialize<{innerType}>(responseContent, _jsonOptions)");
-                sb.AppendLine($"            ?? throw new InvalidOperationException(\"Failed to deserialize response\");");
+                sb.AppendLine($"            ?? default!;");
             }
         }
 
