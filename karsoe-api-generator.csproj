@@ -13,12 +13,24 @@
     <PackageId>Karsoe.ApiGenerator</PackageId>
     <Version>1.0.0</Version>
     <Authors>Karsoe</Authors>
-    <Description>OpenAPI/Swagger C# API Client Generator - Generate strongly-typed API clients from
-      OpenAPI specifications</Description>
-    <PackageTags>openapi;swagger;codegen;api-client;generator</PackageTags>
-    <PackageProjectUrl>https://github.com/karsoe/api-generator</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/karsoe/api-generator</RepositoryUrl>
+    <Title>Karsoe API Generator - OpenAPI/Swagger C# Client Generator</Title>
+    <Description>A powerful .NET command-line tool that generates strongly-typed C# API clients from
+      OpenAPI/Swagger specifications. Prime focus on not to get tangled in circular references -
+      avoids dublicate model genereation. Features include automatic DTO model generation with
+      validation attributes, built-in Polly retry policies, comprehensive logging support, XML
+      documentation for IntelliSense, and automatic README generation. Supports OpenAPI 3.0+
+      specifications in JSON or YAML format. Simple to use: karsoe-api-gen -i swagger.json -o
+      ./Generated -n MyApp.ApiClient</Description>
+    <PackageTags>
+      openapi;swagger;codegen;api-client;generator;dotnet-tool;rest-api;dto;strongly-typed;polly;validation</PackageTags>
+    <PackageProjectUrl>https://github.com/jennermand/karsoe-api-generator</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/jennermand/karsoe-api-generator</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <Copyright>Copyright (c) 2026 Karsoe</Copyright>
+    <PackageReleaseNotes>Initial release with support for OpenAPI 3.0+, strongly-typed clients, DTO
+      generation, Polly integration, and comprehensive validation.</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,6 +39,10 @@
     <PackageReference Include="Polly" Version="8.4.2" />
     <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="8.0.10" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="\" />
   </ItemGroup>
 
   <ItemGroup>

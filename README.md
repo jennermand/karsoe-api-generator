@@ -42,7 +42,7 @@ dotnet tool install --global --add-source ./bin/Release Karsoe.ApiGenerator
 ### From Source
 
 ```bash
-git clone https://github.com/karsoe/api-generator.git
+git clone https://github.com/jennermand/karsoe-api-generator.git
 cd karsoe-api-generator
 dotnet build
 dotnet run -- --help
@@ -356,8 +356,8 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 📞 Support
 
-- **Issues**: [GitHub Issues](https://github.com/karsoe/api-generator/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/karsoe/api-generator/discussions)
+- **Issues**: [GitHub Issues](https://github.com/jennermand/karsoe-api-generator/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/jennermand/karsoe-api-generator/discussions)
 
 ## � Publishing to NuGet
 
