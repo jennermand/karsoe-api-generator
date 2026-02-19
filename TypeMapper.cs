@@ -40,7 +40,7 @@ public static class TypeMapper
         // Handle oneOf (used for nullable references in the swagger.json)
         if (schema.OneOf != null && schema.OneOf.Count > 0)
         {
-            var nonNullSchema = schema.OneOf.FirstOrDefault(s => s.Type != "null" || s.Reference != null);
+            var nonNullSchema = schema.OneOf.FirstOrDefault(s => s.Reference != null || (s.Type != null && s.Type != "null"));
             if (nonNullSchema != null)
             {
                 return MapToCSharpType(nonNullSchema, true);

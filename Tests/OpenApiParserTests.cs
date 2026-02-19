@@ -354,6 +354,151 @@ public class OperationInfoTests
         result.Should().NotContain("id");
     }
 
+    [Theory]
+    [InlineData(OperationType.Get, "Get")]
+    [InlineData(OperationType.Post, "Post")]
+    [InlineData(OperationType.Put, "Put")]
+    [InlineData(OperationType.Delete, "Delete")]
+    [InlineData(OperationType.Patch, "Patch")]
+    public void GetMethodName_WithHttpMethodNames_UsesHttpVerbPrefix(OperationType method, string expectedPrefix)
+    {
+        // Arrange
+        var operationInfo = new OperationInfo
+        {
+            Path = "/products",
+            Method = method,
+            Operation = new OpenApiOperation(),
+            OperationId = null
+        };
+
+        // Act
+        var result = operationInfo.GetMethodName(includeAsyncSuffix: false, useHttpMethodNames: true);
+
+        // Assert
+        result.Should().StartWith(expectedPrefix);
+        result.Should().Be($"{expectedPrefix}Products");
+    }
+
+    [Theory]
+    [InlineData(OperationType.Get, "Get")]
+    [InlineData(OperationType.Post, "Create")]
+    [InlineData(OperationType.Put, "Update")]
+    [InlineData(OperationType.Delete, "Delete")]
+    [InlineData(OperationType.Patch, "Patch")]
+    public void GetMethodName_WithSemanticNames_UsesSemanticPrefix(OperationType method, string expectedPrefix)
+    {
+        // Arrange
+        var operationInfo = new OperationInfo
+        {
+            Path = "/products",
+            Method = method,
+            Operation = new OpenApiOperation(),
+            OperationId = null
+        };
+
+        // Act
+        var result = operationInfo.GetMethodName(includeAsyncSuffix: false, useHttpMethodNames: false);
+
+        // Assert
+        result.Should().StartWith(expectedPrefix);
+        result.Should().Be($"{expectedPrefix}Products");
+    }
+
+    [Fact]
+    public void GetMethodName_PostWithHttpMethodNames_GeneratesPostPrefix()
+    {
+        // Arrange
+        var operationInfo = new OperationInfo
+        {
+            Path = "/users",
+            Method = OperationType.Post,
+            Operation = new OpenApiOperation(),
+            OperationId = null
+        };
+
+        // Act
+        var result = operationInfo.GetMethodName(includeAsyncSuffix: false, useHttpMethodNames: true);
+
+        // Assert
+        result.Should().Be("PostUsers");
+    }
+
+    [Fact]
+    public void GetMethodName_PostWithSemanticNames_GeneratesCreatePrefix()
+    {
+        // Arrange
+        var operationInfo = new OperationInfo
+        {
+            Path = "/users",
+            Method = OperationType.Post,
+            Operation = new OpenApiOperation(),
+            OperationId = null
+        };
+
+        // Act
+        var result = operationInfo.GetMethodName(includeAsyncSuffix: false, useHttpMethodNames: false);
+
+        // Assert
+        result.Should().Be("CreateUsers");
+    }
+
+    [Fact]
+    public void GetMethodName_PutWithHttpMethodNames_GeneratesPutPrefix()
+    {
+        // Arrange
+        var operationInfo = new OperationInfo
+        {
+            Path = "/users/{id}",
+            Method = OperationType.Put,
+            Operation = new OpenApiOperation(),
+            OperationId = null
+        };
+
+        // Act
+        var result = operationInfo.GetMethodName(includeAsyncSuffix: false, useHttpMethodNames: true);
+
+        // Assert
+        result.Should().Be("PutUsers");
+    }
+
+    [Fact]
+    public void GetMethodName_PutWithSemanticNames_GeneratesUpdatePrefix()
+    {
+        // Arrange
+        var operationInfo = new OperationInfo
+        {
+            Path = "/users/{id}",
+            Method = OperationType.Put,
+            Operation = new OpenApiOperation(),
+            OperationId = null
+        };
+
+        // Act
+        var result = operationInfo.GetMethodName(includeAsyncSuffix: false, useHttpMethodNames: false);
+
+        // Assert
+        result.Should().Be("UpdateUsers");
+    }
+
+    [Fact]
+    public void GetMethodName_WithHttpMethodNames_AndAsyncSuffix_GeneratesCorrectName()
+    {
+        // Arrange
+        var operationInfo = new OperationInfo
+        {
+            Path = "/orders",
+            Method = OperationType.Post,
+            Operation = new OpenApiOperation(),
+            OperationId = null
+        };
+
+        // Act
+        var result = operationInfo.GetMethodName(includeAsyncSuffix: true, useHttpMethodNames: true);
+
+        // Assert
+        result.Should().Be("PostOrdersAsync");
+    }
+
     [Fact]
     public void GetReturnType_WithNoResponse_ReturnsTask()
     {

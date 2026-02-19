@@ -123,7 +123,7 @@ public class ApiClientGenerator
 
     private void GenerateMethod(StringBuilder sb, OperationInfo operation)
     {
-        var methodName = operation.GetMethodName(_options.UseAsyncSuffix);
+        var methodName = operation.GetMethodName(_options.UseAsyncSuffix, _options.UseHttpMethodNames);
         
         // Check for duplicate method names and skip
         if (_generatedMethodNames.Contains(methodName))

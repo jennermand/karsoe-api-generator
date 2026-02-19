@@ -23,6 +23,7 @@ public class GeneratorOptionsTests
         options.EnableRetryPolicy.Should().BeTrue();
         options.EnableLogging.Should().BeTrue();
         options.UseAsyncSuffix.Should().BeTrue();
+        options.UseHttpMethodNames.Should().BeFalse();
         options.GenerateReadme.Should().BeTrue();
         options.AddValidationAttributes.Should().BeTrue();
     }
@@ -168,6 +169,45 @@ public class GeneratorOptionsTests
 
         // Assert
         options.AddValidationAttributes.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Parse_WithDefaultOptions_UseHttpMethodNamesIsFalse()
+    {
+        // Arrange
+        var args = Array.Empty<string>();
+
+        // Act
+        var options = GeneratorOptions.Parse(args);
+
+        // Assert
+        options.UseHttpMethodNames.Should().BeFalse();
+    }
+
+    [Fact]
+    public void Parse_WithUseHttpMethodNames_EnablesHttpMethodNames()
+    {
+        // Arrange
+        var args = new[] { "--use-http-method-names" };
+
+        // Act
+        var options = GeneratorOptions.Parse(args);
+
+        // Assert
+        options.UseHttpMethodNames.Should().BeTrue();
+    }
+
+    [Fact]
+    public void Parse_WithoutUseHttpMethodNames_UsesSemanticNames()
+    {
+        // Arrange
+        var args = new[] { "-i", "swagger.json" };
+
+        // Act
+        var options = GeneratorOptions.Parse(args);
+
+        // Assert
+        options.UseHttpMethodNames.Should().BeFalse();
     }
 
     [Fact]

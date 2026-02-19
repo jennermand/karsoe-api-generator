@@ -41,6 +41,11 @@ public class GeneratorOptions
     public bool UseAsyncSuffix { get; set; } = true;
 
     /// <summary>
+    /// Whether to use HTTP method names (Post, Put) instead of semantic names (Create, Update).
+    /// </summary>
+    public bool UseHttpMethodNames { get; set; } = false;
+
+    /// <summary>
     /// Whether to generate README.md file.
     /// </summary>
     public bool GenerateReadme { get; set; } = true;
@@ -104,6 +109,10 @@ public class GeneratorOptions
                     options.AddValidationAttributes = false;
                     break;
 
+                case "--use-http-method-names":
+                    options.UseHttpMethodNames = true;
+                    break;
+
                 case "--help":
                 case "-h":
                     PrintHelp();
@@ -130,6 +139,7 @@ public class GeneratorOptions
         Console.WriteLine("  --no-logging             Skip logging infrastructure");
         Console.WriteLine("  --no-readme              Skip README.md generation");
         Console.WriteLine("  --no-validation          Skip validation attributes");
+        Console.WriteLine("  --use-http-method-names  Use HTTP verbs (Post, Put) instead of semantic names (Create, Update)");
         Console.WriteLine("  -h, --help               Show this help message");
         Console.WriteLine();
         Console.WriteLine("Example:");

@@ -125,7 +125,7 @@ public class OperationInfo
     /// <summary>
     /// Generates a method name for this operation.
     /// </summary>
-    public string GetMethodName(bool includeAsyncSuffix = true)
+    public string GetMethodName(bool includeAsyncSuffix = true, bool useHttpMethodNames = false)
     {
         if (!string.IsNullOrWhiteSpace(OperationId))
         {
@@ -138,15 +138,25 @@ public class OperationInfo
             .Where(p => !p.StartsWith("{"))
             .Select(p => TypeMapper.SanitizeClassName(p));
 
-        var methodPrefix = Method switch
-        {
-            OperationType.Get => "Get",
-            OperationType.Post => "Create",
-            OperationType.Put => "Update",
-            OperationType.Delete => "Delete",
-            OperationType.Patch => "Patch",
-            _ => Method.ToString()
-        };
+        var methodPrefix = useHttpMethodNames
+            ? Method switch
+            {
+                OperationType.Get => "Get",
+                OperationType.Post => "Post",
+                OperationType.Put => "Put",
+                OperationType.Delete => "Delete",
+                OperationType.Patch => "Patch",
+                _ => Method.ToString()
+            }
+            : Method switch
+            {
+                OperationType.Get => "Get",
+                OperationType.Post => "Create",
+                OperationType.Put => "Update",
+                OperationType.Delete => "Delete",
+                OperationType.Patch => "Patch",
+                _ => Method.ToString()
+            };
 
         var name = methodPrefix + string.Join("", pathParts);
         return includeAsyncSuffix ? name + "Async" : name;

@@ -379,4 +379,47 @@ public class ModelGeneratorTests : IDisposable
         var content = File.ReadAllText(modelPath);
         content.Should().Contain("public class ProductDTO");
     }
+
+    [Fact]
+    public void GenerateModels_WithSwaggerJson_GeneratesRelatedProductDTOWithCorrectTypes()
+    {
+        // Arrange - use the actual swagger.json
+        var swaggerPath = Path.Combine(Directory.GetCurrentDirectory(), "..", "..", "..", "swagger.json");
+        if (!File.Exists(swaggerPath))
+        {
+            // Skip if swagger.json not found (e.g., in different test environment)
+            return;
+        }
+
+        var options = new GeneratorOptions
+        {
+            InputPath = swaggerPath,
+            OutputDirectory = _testOutputDirectory,
+            Namespace = "GeneratedApi",
+            AddValidationAttributes = true
+        };
+
+        var parser = new OpenApiParser();
+        parser.LoadFromFile(swaggerPath);
+
+        var generator = new ModelGenerator(options);
+
+        // Act
+        generator.GenerateModels(parser.GetSchemas(), Path.Combine(_testOutputDirectory, "Models"));
+
+        // Assert
+        var modelPath = Path.Combine(_testOutputDirectory, "Models", "RelatedProductDTO.cs");
+        File.Exists(modelPath).Should().BeTrue();
+        var content = File.ReadAllText(modelPath);
+
+        // Check that the oneOf properties are correctly typed
+        content.Should().Contain("public ProblemsDTO? Problems { get; set; }");
+        content.Should().Contain("public SharedAlbumDTO? SharedAlbum { get; set; }");
+        content.Should().Contain("public DistilleryDTO? Distillery { get; set; }");
+
+        // Ensure they are not object?
+        content.Should().NotContain("public object? Problems { get; set; }");
+        content.Should().NotContain("public object? SharedAlbum { get; set; }");
+        content.Should().NotContain("public object? Distillery { get; set; }");
+    }
 }
